@@ -27,6 +27,25 @@ class Activation_Softwax:
         probabilities=exp_values / np.sum(exp_values,axis=1,keepdims=True)
         self.output=probabilities
 
+class Loss:
+    def calculate(self,output,y):
+        sample_loss=self.forward(output,y)
+        data_loss=np.mean(sample_loss)
+        return data_loss
+
+class Loss_Categorial_CrossEntory(Loss):
+    def forward(self,y_pred,y_true):
+        samples=len(y_pred)
+        y_pred_clipped=np.clip(y_pred,1e-7,1-1e-7)
+
+        if len(y_true.shape)==1:
+            confidence=y_pred_clipped[range(samples),y_true]
+        elif len(y_true.shape)==2:
+            confidence=np.sum(y_pred_clipped*y_true,axis=1)
+
+        negative_log_likelihood= -np.log(confidence)
+        return negative_log_likelihood
+
 
 X,y=spiral_data(samples=100,classes=3)
 
@@ -44,6 +63,10 @@ activation2.forward(dense2.output)
 
 print(activation2.output[:5])
 
+loss_function=Loss_Categorial_CrossEntory()
+loss=loss_function.calculate(activation2.output,y)
+
+print(loss)
 
 
 
